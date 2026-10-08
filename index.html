@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Остатки деталей</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1f6feb">
@@ -47,6 +47,8 @@ summary{cursor:pointer;color:var(--ac);padding:4px 0}
 .pt.on{border-color:var(--ac);font-weight:700}
 .pt img{width:100%;height:90px;object-fit:cover;border-radius:6px;display:block;margin-bottom:2px}
 #zoom{z-index:12!important}
+body.kb main{padding-bottom:60vh}
+#s{scroll-margin-top:10px}
 #zx{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;width:46px;height:46px;border-radius:50%;padding:0;font-size:22px;background:#000a;color:#fff;border:1px solid #fff6}
 #zoom img{max-width:96%;max-height:96%}
 </style></head><body><main>
@@ -54,7 +56,7 @@ summary{cursor:pointer;color:var(--ac);padding:4px 0}
 <div id="msg" class="card mu" style="display:none"></div>
 
 <div class="card">
-  <b>Добавить остаток</b>
+  <b>Добавить деталь</b>
   <div class="row" style="margin-top:8px">
     <input id="n" placeholder="Название детали">
     <input id="a" placeholder="Артикул / обозначение">
@@ -153,17 +155,17 @@ function editCard(p){return `<div class="card" data-id="${p.id}"><b>Редакт
 const when=t=>new Date(t).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const addH=(h,...e)=>[...(h||[]),...e].slice(-60);
 const openH=new Set();
-const HT={create:e=>'Добавлена деталь'+(e.q?': '+e.q+' шт':''),add:e=>`Добавлено: +${e.q} шт`};
+const HT={fix:e=>`Количество изменено вручную: ${e.from} → ${e.to} шт (${e.to>e.from?'+':'−'}${Math.abs(e.to-e.from)})`,create:e=>'Добавлена деталь'+(e.q?': '+e.q+' шт':''),add:e=>`Добавлено: +${e.q} шт`};
 function histHtml(p){
   let h=(p.hist||[]).filter(e=>HT[e.a]);
   if(!h.length)h=[{t:cr(p),a:'create'}];
-  const adds=h.reduce((n,e)=>n+(e.a==='add'?(e.q||0):0),0);
+  const adds=h.reduce((n,e)=>n+(e.a==='add'?(e.q||0):e.a==='fix'?(e.to-e.from):0),0);
   h=h.map(e=>e.a==='create'&&!e.q?{...e,q:Math.max(0,(p.qty||0)-adds)}:e);
   const rows=h.slice().reverse().map(e=>`<div class="hr"><span class="mu">${when(e.t)}</span><br>${esc(HT[e.a](e))}</div>`).join('');
   return `<details data-h="${p.id}"${openH.has(p.id)?' open':''}><summary>🕘 История (${h.length})</summary>${rows}</details>`}
 function card(p,pin,dup){return p.id===editing&&!dup?editCard(p):`
   <div class="card${pin?' pin':''}" data-id="${p.id}">
-    <button class="g tr" data-a="del" aria-label="Удалить" title="Удалить">🗑</button>
+    <button class="g tr" data-a="del" aria-label="Удалить" title="Удалить" style="color:#d1242f;font-size:20px;font-weight:700">✕</button>
     ${pin?'<div class="pl">⭐ Последняя добавленная</div>':''}
     <div class="part">
       ${p.img?`<img src="${p.img}" alt="">`:''}
@@ -199,6 +201,7 @@ $('wrap').addEventListener('click',async e=>{
       st.textContent='Сохраняю…';
       const u={name,art:c.querySelector('.e-a').value.trim(),mat:c.querySelector('.e-m').value.trim(),qty:q,upd:Date.now()};
       if(file)u.img=shrink(await fileToCanvas(file));
+      if(q!==p.qty)u.hist=addH(p.hist&&p.hist.length?p.hist:[{t:cr(p),a:'create'}],{t:u.upd,a:'fix',from:p.qty,to:q});
       await col.doc(p.id).update(u);editing=null;render();return}
     if(a==='del'){askDel(p);return}
   }catch(err){say('Не удалось сохранить: '+(err.message||err.code))}
@@ -224,7 +227,7 @@ function askPhoto(o,n){return new Promise(res=>{
 $('add').onclick=async()=>{
   const name=$('n').value.trim(),art=$('a').value.trim(),q=parseInt($('q').value,10),file=$('f').files[0];
   if(!col)return say('Нет доступа к общему складу. Откройте страницу из Claude под своим аккаунтом.');
-  if(!name||!q||q<1)return say('Укажите деталь и количество');
+  if(!name||!q||q<1){const fl=e=>{e.style.borderColor='#d1242f';setTimeout(()=>e.style.borderColor='',1500)};if(!name)fl($('n'));if(!q||q<1)fl($('q'));return}
   const ex=parts.find(p=>art?(p.art||'').trim().toLowerCase()===art.toLowerCase():p.name.trim().toLowerCase()===name.toLowerCase());
   if(ex&&!(await askDup(ex,q))){$('st').textContent='';return}
   $('st').textContent='Сохраняю…';
@@ -235,7 +238,7 @@ $('add').onclick=async()=>{
       const u={qty:ex.qty+q,upd:now,hist:addH(h,{t:now,a:'add',q,from:ex.qty,to:ex.qty+q})};
       if(img){if(!ex.img)u.img=img;else{$('st').textContent='';if(await askPhoto(ex.img,img)==='new')u.img=img;$('st').textContent='Сохраняю…'}}if(art)u.art=art;if(mat)u.mat=mat;await col.doc(ex.id).update(u)}
     else await col.doc(now.toString(36)+Math.random().toString(36).slice(2,6)).set({name,art,mat,qty:q,img:img||'',upd:now,hist:[{t:now,a:'create',q}]});
-    $('n').value='';$('a').value='';mat='';$('q').value='';$('f').value='';$('st').textContent='Готово ✓';say('');
+    $('n').value='';$('a').value='';mat='';$('q').value='';$('f').value='';$('st').textContent='';say('');
   }catch(err){$('st').textContent='';say('Ошибка: '+(err.message||err.code))}
 };
 
@@ -279,6 +282,20 @@ render();
     $('lg').style.display='none';if(col)return;
     col=fs.collection('parts');
     col.onSnapshot(sn=>{parts=sn.docs.map(d=>({id:d.id,...d.data()}));if(!editing)render()},e=>say('Ошибка склада: '+(e.message||e.code)));
+  });
+})();
+(function(){
+  const s=$('s'),vv=window.visualViewport,vh=()=>vv?vv.height:window.innerHeight;
+  let base=Math.max(window.innerHeight,vh()),shown=false;
+  const lift=()=>setTimeout(()=>{if(document.activeElement===s)s.scrollIntoView({block:'start',behavior:'smooth'})},200);
+  const close=()=>{shown=false;document.body.classList.remove('kb');window.scrollTo({top:0,behavior:'smooth'})};
+  s.addEventListener('focus',()=>{document.body.classList.add('kb');lift()});
+  s.addEventListener('blur',()=>{if(document.body.classList.contains('kb'))close()});
+  (vv||window).addEventListener('resize',()=>{
+    const h=vh();if(h>base)base=h;
+    if(document.activeElement!==s)return;
+    if(h<base*0.8){shown=true;lift()}
+    else if(shown&&h>base*0.85){s.blur()}
   });
 })();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
