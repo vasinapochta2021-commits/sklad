@@ -50,6 +50,8 @@ button.g{background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
 .tabs button.on{background:var(--card);color:var(--tx);font-weight:700;border-top:3px solid var(--ac)}
 .casc{position:relative;width:84px;height:84px;flex:none;cursor:zoom-in}
 .casc img{position:absolute;width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--bd);background:var(--bg)}
+.sec{margin-top:18px;padding-top:4px;border-top:1px solid var(--bd)}
+.bdr{margin-top:6px}
 .priv{border:1px dashed var(--rd);border-radius:10px;padding:8px;margin-top:10px}
 a.f{color:var(--ac);cursor:pointer;text-decoration:underline}
 .ov{position:fixed;inset:0;background:#000b;display:none;align-items:flex-start;justify-content:center;z-index:10;padding:12px;overflow-y:auto}
@@ -86,25 +88,35 @@ a.f{color:var(--ac);cursor:pointer;text-decoration:underline}
 
 <div id="edm" class="ov"><div class="box">
   <b id="edt" style="font-size:18px">Позиция плана</b>
-  <label class="l">Название детали / изделия *</label><input id="et">
-  <div class="row"><div style="flex:1"><label class="l">Артикул</label><input id="ea"></div>
-  <div style="flex:1"><label class="l">Количество, шт *</label><input id="eq" type="number" min="1" inputmode="numeric"></div></div>
-  <div class="row"><div style="flex:1"><label class="l">Тип</label><select id="ety"><option value="own">Для магазина</option><option value="ext">Сторонний заказ</option></select></div>
-  <div style="flex:1"><label class="l">Материал</label><input id="em"></div></div>
-  <div id="ecw"><label class="l">Клиент</label><input id="ec"></div>
-  <label class="l">Проект (общий для нескольких деталей)</label><select id="epj"></select><input id="epn" placeholder="Название нового проекта" style="display:none;margin-top:6px">
-  <div id="epuw" style="display:none"><label class="l">Штук на 1 изделие проекта</label><input id="epu" type="number" min="1" inputmode="numeric" value="1"></div>
-  <div class="row"><div style="flex:1"><label class="l">Срочность</label><select id="eu"><option value="urgent">🔥 Срочно</option><option value="normal" selected>Обычная</option><option value="low">Не срочно</option></select></div>
-  <div style="flex:1"><label class="l">Срок</label><input id="ed" type="date"></div></div>
-  <label class="l">ТЗ / комментарий</label><textarea id="en"></textarea>
-  <label class="l">Чертёж (фото, скриншот или PDF)</label><input id="ef" type="file" accept="image/*,application/pdf,.pdf">
-  <label class="l">Файлы для всех: 3D-модели и др. (до 8 МБ каждый)</label><input id="efp" type="file" multiple>
-  <div class="priv"><b style="color:var(--rd)">🔒 Только для администратора</b>
-    <label class="l">Анкетные данные заказчика, заметки</label><textarea id="einf"></textarea>
-    <label class="l">Счета, договоры, документы (до 8 МБ каждый)</label><input id="efv" type="file" multiple></div>
-  <label class="l">Вид покрытия (если нужно)</label><select id="ect"><option value="">—</option><option>Покраска</option><option>Анодирование (у партнёров)</option><option>Оксидирование</option></select>
-  <label class="l">Этапы, нужные для этой позиции</label><div id="est"></div>
-  <div class="row" style="margin-top:12px"><button id="esv">Сохранить</button><button id="ecn" class="g">Отмена</button><span id="ems" class="mu"></span></div>
+  <div>
+    <label class="l">1. Проект</label><select id="epj"></select><input id="epn" placeholder="Название нового проекта" style="display:none;margin-top:6px">
+    <label class="l">2. Артикул детали</label><input id="ea">
+    <label class="l">3. Название детали *</label><input id="et">
+    <label class="l">4. Чертёж (фото, скриншот или PDF)</label><input id="ef" type="file" accept="image/*,application/pdf,.pdf">
+    <img id="efi" alt="" style="display:none;width:100%;max-height:220px;object-fit:contain;margin-top:6px;border-radius:8px;border:1px solid var(--bd);background:var(--bg)">
+    <label class="l">3D-модель и другие файлы (до 8 МБ каждый)</label><input id="efp" type="file" multiple><div id="efpl" class="mu" style="margin-top:4px"></div>
+  </div>
+  <div class="sec">
+    <label class="l">5. Материал</label><input id="em">
+    <label class="l">6. Заготовка: вид</label><select id="ebk"></select><input id="ebk2" placeholder="Вид заготовки" style="display:none;margin-top:6px">
+    <div id="ebd" style="margin-top:6px"></div><button id="ebda" class="g" type="button" style="margin-top:6px">＋ Добавить поле</button>
+    <div id="epuw"><label class="l">7. Количество деталей на одно изделие</label><input id="epu" type="number" min="1" inputmode="numeric" value="1"></div>
+    <div id="eqw"><label class="l" id="eql">7. Количество деталей, шт *</label><input id="eq" type="number" min="1" inputmode="numeric"></div>
+  </div>
+  <div class="sec">
+    <label class="l">8. Доп. обработка</label><input id="eex" list="exl" placeholder="например: снятие заусенцев, шпоночный паз">
+    <datalist id="exl"><option value="Снятие заусенцев"><option value="Шпоночный паз"><option value="Сборка"><option value="Запрессовка"><option value="Пескоструйная обработка"><option value="Галтовка"></datalist>
+    <label class="l">9. Покрытие</label><select id="ect"><option value="">— без покрытия —</option><option>Покраска</option><option>Анодирование (у партнёров)</option><option>Оксидирование</option><option value="__m">Ввести вручную…</option></select><input id="ect2" placeholder="Вид покрытия" style="display:none;margin-top:6px">
+  </div>
+  <div class="sec">
+    <label class="l">10. ТЗ / комментарий</label><textarea id="en"></textarea>
+  </div>
+  <details class="gd" style="margin-top:16px"><summary>Тип заказа и этапы</summary>
+    <label class="l">Тип (для деталей вне проекта)</label><select id="ety"><option value="own">Для магазина</option><option value="ext">Сторонний заказ</option></select>
+    <div id="ecw" style="display:none"><label class="l">Клиент</label><input id="ec"></div>
+    <label class="l">Этапы, нужные для этой позиции</label><div id="est"></div>
+  </details>
+  <div class="row" style="margin-top:14px"><button id="esv">Сохранить</button><button id="ecn" class="g">Отмена</button><span id="ems" class="mu"></span></div>
 </div></div>
 
 <div id="tm" class="ov"><div class="box">
@@ -331,14 +343,16 @@ function card(it,inP){
       <div class="row bt"><b>${esc(it.title)}</b><span class="tag ${it.type}">${it.type==='ext'?'Сторонний':'Магазин'}</span></div>
       <div class="mu">${it.art?'Арт. '+esc(it.art)+' · ':''}${it.type==='ext'&&it.client?esc(it.client)+' · ':''}${esc(it.material||'')}${pj&&!inP?' · 📁 '+esc(pj.name):''}</div>
       ${dr?`<div class="mu">На 1 изделие: ${it.perUnit||1} шт</div>`:`<div class="bar"><i style="width:${pc(rd)}%"></i></div>
-      <div class="row mu bt"><span>Готово ${rd} из ${it.qty} шт</span><span${late?' class="late"':''}>${it.due?'до '+dd(it.due):''}</span></div>`+ss.map(s=>`<div class="sb"><span style="min-width:78px">№${s.n} ${esc(SHORT[s.m]||s.m)}</span><div class="bar sm"><i style="width:${pc(smade(s))}%"></i></div><span>${smade(s)}/${it.qty}</span></div>`).join('')}
+      <div class="row mu bt"><span>Готово ${rd} из ${it.qty} шт</span></div>`+ss.map(s=>`<div class="sb"><span style="min-width:78px">№${s.n} ${esc(SHORT[s.m]||s.m)}</span><div class="bar sm"><i style="width:${pc(smade(s))}%"></i></div><span>${smade(s)}/${it.qty}</span></div>`).join('')}
       <div class="stg">${dr?'⏳ Ожидает запуска проекта':it.skip?'🏭 Хватает остатка на складе':dn?'✅ Готово':GR[c.g]+' → '+c.n}</div>
     </div></div></div>`;
   if(x){
     if(it.img)h+=`<img src="${it.img}" data-a="zoom" alt="" style="width:100%;max-height:300px;object-fit:contain;margin-top:10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);cursor:zoom-in">`;
     if(it.notes)h+=`<div style="margin-top:10px;white-space:pre-wrap"><span class="mu">ТЗ:</span> ${esc(it.notes)}</div>`;
     if((it.files||[]).length)h+='<div style="margin-top:10px"><b>Файлы</b>'+it.files.map(m=>fileRow(m,'pub',adm)).join('')+'</div>';
-    if(adm){const pv=privs[it.id]||{};h+=`<div class="priv"><b style="color:var(--rd)">🔒 Только администратор</b>${pv.info?`<div style="white-space:pre-wrap;margin-top:6px">${esc(pv.info)}</div>`:''}${(pv.docs||[]).map(m=>fileRow(m,'priv',true)).join('')||'<div class="mu">Документов нет</div>'}</div>`}
+    const bdt=(it.bd||[]).map(x=>esc(x.l.replace(/, (мм|кг)$/,''))+': '+esc(x.v)).join(' · ');
+    const info=[it.material?'Материал: '+esc(it.material):'',it.bk?'Заготовка: '+esc(it.bk)+(bdt?' · '+bdt:''):'',it.extra?'Доп. обработка: '+esc(it.extra):'',it.coatType?'Покрытие: '+esc(it.coatType):'',it.perUnit&&it.proj?'На 1 изделие: '+it.perUnit+' шт':''].filter(Boolean);
+    if(info.length)h+='<div class="mu" style="margin-top:10px;line-height:1.6">'+info.join('<br>')+'</div>';
     const stp=k=>it.steps&&it.steps[k]&&it.steps[k].on;
     if(!dr&&!it.skip)[1,2,3].forEach(g=>{
       const l=STEPS.filter(s=>s.g===g&&stp(s.k)),hasS=g===2&&stp('mach');
@@ -408,7 +422,7 @@ function render(){
   renderTabs();let h='',n=0;
   if(tab==='proj'){const v=visibleProj().sort((a,b)=>(b.cr||0)-(a.cr||0));n=v.length;h=v.map(pcard).join('')}
   else if(tab==='work'){const v=visible();n=v.length;
-    h=URG.map(([k,nm])=>{const g=v.filter(i=>(i.urg||'normal')===k).sort(by);return g.length?`<div class="gh">${nm} (${g.length})</div>`+g.map(i=>card(i,false)).join(''):''}).join('')}
+    h=v.sort((a,b)=>(b.cr||0)-(a.cr||0)).map(i=>card(i,false)).join('')}
   else if(tab==='done'){const v=visible().sort((a,b)=>(b.upd||0)-(a.upd||0));n=v.length;h=v.map(i=>card(i,false)).join('')}
   else{const pv=visibleProj().sort((a,b)=>(b.upd||0)-(a.upd||0)),v=visible().sort((a,b)=>(b.upd||0)-(a.upd||0));n=pv.length+v.length;
     h=(pv.length?'<div class="gh">Проекты</div>'+pv.map(pcard).join(''):'')+(v.length?'<div class="gh">Детали</div>'+v.map(i=>card(i,false)).join(''):'')}
@@ -499,42 +513,98 @@ $('list').addEventListener('change',async e=>{
 });
 $('zx').onclick=()=>{$('zm').style.display='none'};$('zm').onclick=e=>{if(e.target.id==='zm')$('zm').style.display='none'};
 
-/* редактор */
-function stepBoxes(on){$('est').innerHTML=[1,2,3].map(g=>`<div class="gt">${GT[g]}</div>`+STEPS.filter(s=>s.g===g).map(s=>`<label style="display:flex;gap:8px;align-items:center;margin:4px 0;font-size:15px"><input type="checkbox" id="es_${s.k}" style="width:20px;height:20px" ${on[s.k]?'checked':''}> ${s.n}</label>`).join('')).join('')}
+/* редактор детали */
+const BK={
+ 'Круг':['Диаметр, мм','Длина с припуском, мм'],
+ 'Труба':['Внешний диаметр, мм','Внутренний диаметр, мм','Длина с припуском, мм'],
+ 'Профильная труба':['Ширина, мм','Высота, мм','Толщина стенки, мм','Длина с припуском, мм'],
+ 'Шестигранник':['Раствор (под ключ), мм','Длина с припуском, мм'],
+ 'Квадрат':['Сторона, мм','Длина с припуском, мм'],
+ 'Полоса':['Ширина, мм','Толщина, мм','Длина с припуском, мм'],
+ 'Плита':['Длина, мм','Ширина, мм','Толщина, мм'],
+ 'Лист':['Длина, мм','Ширина, мм','Толщина, мм'],
+ 'Уголок':['Полка 1, мм','Полка 2, мм','Толщина, мм','Длина с припуском, мм'],
+ 'Швеллер':['Номер / высота, мм','Длина с припуском, мм'],
+ 'Многогранник':['Количество граней','Размер (под ключ), мм','Длина с припуском, мм'],
+ 'Поковка / штамповка':['Габариты, мм','Масса, кг'],
+ 'Отливка':['Габариты, мм','Масса, кг'],
+ 'Заготовка с лазерной резки':['Длина, мм','Ширина, мм','Толщина, мм'],
+ 'Заготовка с электроэрозионной резки':['Длина, мм','Ширина, мм','Толщина, мм'],
+ 'Заготовка заказчика':['Размеры / описание'],
+ 'Ввести вручную…':['Размеры']};
+const MAN='Ввести вручную…';
+let edImg=null;
+function stepBoxes(on){$('est').innerHTML=[1,2,3].map(g=>{const l=STEPS.filter(s=>s.g===g&&s.k!=='fit'&&s.k!=='coat');return l.length?`<div class="gt">${GT[g]}</div>`+l.map(s=>`<label style="display:flex;gap:8px;align-items:center;margin:4px 0;font-size:15px"><input type="checkbox" id="es_${s.k}" style="width:20px;height:20px" ${on[s.k]?'checked':''}> ${s.n}</label>`).join(''):''}).join('')+'<div class="mu" style="margin-top:6px">«Слесарная доработка» включается, когда заполнена доп. обработка, а «Покрытие», когда выбрано покрытие.</div>'}
+function bdRow(l,v,custom){const d=document.createElement('div');d.className='bdr';
+  if(custom){d.innerHTML='<div class="row"><input class="bdl" placeholder="Название поля"><input class="bdv" placeholder="Значение"><button class="g" type="button" style="padding:6px 10px">✕</button></div>';d.querySelector('.bdl').value=l||'';d.querySelector('button').onclick=()=>d.remove()}
+  else{d.innerHTML='<span class="mu"></span><input class="bdv">';d.firstChild.textContent=l;d.dataset.l=l}
+  d.querySelector('.bdv').value=v||'';$('ebd').appendChild(d)}
+function bdCollect(){return [...$('ebd').children].map(d=>({l:d.dataset.l||d.querySelector('.bdl').value.trim(),v:d.querySelector('.bdv').value.trim()})).filter(x=>x.l&&x.v)}
+function bdBuild(kind,vals){const keep={};(vals||[]).forEach(x=>keep[x.l]=x.v);$('ebd').innerHTML='';
+  (BK[kind]||[]).forEach(l=>{bdRow(l,keep[l],false);delete keep[l]});
+  Object.keys(keep).forEach(l=>bdRow(l,keep[l],true))}
+$('ebk').innerHTML='<option value="">— не выбрано —</option>'+Object.keys(BK).map(k=>`<option>${k}</option>`).join('');
+$('ebk').onchange=()=>{$('ebk2').style.display=$('ebk').value===MAN?'':'none';bdBuild($('ebk').value,bdCollect())};
+$('ebda').onclick=()=>bdRow('','',true);
+$('ect').onchange=()=>{$('ect2').style.display=$('ect').value==='__m'?'':'none'};
+function syncQ(){const v=$('epj').value,pj=projs.find(p=>p.id===v),hp=!!v,lc=!!(pj&&pj.launched);
+  $('epuw').style.display=hp?'':'none';$('eqw').style.display=(!hp||lc)?'':'none';
+  $('eql').textContent=hp?'Сколько изготовить, шт *':'7. Количество деталей, шт *'}
+function filesInfo(){const ex=editing&&editing.files||[],nw=[...$('efp').files];
+  $('efpl').innerHTML=(ex.length?'Уже прикреплено:<br>'+ex.map(m=>'📎 '+esc(m.name)).join('<br>')+(nw.length?'<br>':''):'')+(nw.length?'Будет добавлено:<br>'+nw.map(f=>'📎 '+esc(f.name)).join('<br>'):'')}
+$('efp').onchange=filesInfo;
+$('ef').onchange=async()=>{const f=$('ef').files[0];edImg=null;
+  if(!f){$('efi').style.display=editing&&editing.img?'':'none';$('efi').src=editing&&editing.img||'';return}
+  try{edImg=shrink(await fileToCanvas(f));$('efi').src=edImg;$('efi').style.display=''}catch(e){$('ems').textContent='Не удалось открыть файл'}};
 function openEd(it,pj0){
-  editing=it||null;$('edt').textContent=it?'Изменить позицию':'Новая позиция';$('ems').textContent='';
-  $('et').value=it?it.title:'';$('ea').value=it?it.art||'':'';$('ety').value=it?it.type:'own';$('eq').value=it?it.qty:'';$('ec').value=it?it.client||'':'';
-  $('em').value=it?it.material||'':'';$('eu').value=it?it.urg||'normal':'normal';$('ed').value=it?it.due||'':'';$('en').value=it?it.notes||'':'';
-  $('ef').value='';$('efp').value='';$('efv').value='';$('epn').value='';$('epn').style.display='none';
-  $('einf').value=it?(privs[it.id]||{}).info||'':'';$('ect').value=it?it.coatType||'':'';
+  editing=it||null;edImg=null;$('edt').textContent=it?'Изменить деталь':'Новая деталь';$('ems').textContent='';
+  $('et').value=it?it.title:'';$('ea').value=it?it.art||'':'';$('eq').value=it&&it.qty?it.qty:'';$('em').value=it?it.material||'':'';
+  $('en').value=it?it.notes||'':'';$('eex').value=it?it.extra||'':'';$('ef').value='';$('efp').value='';$('epn').value='';$('epn').style.display='none';
+  $('ety').value=it?it.type||'own':'own';$('ec').value=it?it.client||'':'';$('ecw').style.display=$('ety').value==='ext'?'':'none';
+  $('efi').src=it&&it.img||'';$('efi').style.display=it&&it.img?'':'none';
+  const ct=it?it.coatType||'':'',inList=[...$('ect').options].some(o=>o.value===ct||o.text===ct);
+  $('ect').value=!ct?'':inList?ct:'__m';$('ect2').value=inList?'':ct;$('ect2').style.display=$('ect').value==='__m'?'':'none';
+  const bk=it?it.bk||'':'';
+  if(!bk){$('ebk').value='';$('ebk2').style.display='none'}
+  else if(BK[bk]){$('ebk').value=bk;$('ebk2').style.display=bk===MAN?'':'none';$('ebk2').value=''}
+  else{$('ebk').value=MAN;$('ebk2').style.display='';$('ebk2').value=bk}
+  bdBuild($('ebk').value,it?it.bd:[]);
   $('epj').innerHTML='<option value="">— без проекта —</option>'+projs.filter(p=>!p.arch).sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')+'<option value="__new">＋ Новый проект…</option>';
-  $('epj').value=it&&projs.some(p=>p.id===it.proj)?it.proj:'';if(!it&&pj0)$('epj').value=pj0;$('epu').value=it?it.perUnit||1:1;$('epuw').style.display=$('epj').value?'':'none';
-  const on={};STEPS.forEach(s=>on[s.k]=it?!!(it.steps&&it.steps[s.k]&&it.steps[s.k].on):defOn('own',s.k));
-  stepBoxes(on);$('ecw').style.display=$('ety').value==='ext'?'':'none';$('edm').style.display='flex';
+  $('epj').value=it&&projs.some(p=>p.id===it.proj)?it.proj:'';if(!it&&pj0)$('epj').value=pj0;
+  $('epu').value=it?it.perUnit||1:1;syncQ();filesInfo();
+  const pj=projs.find(p=>p.id===$('epj').value),ty=pj?pj.type||'own':$('ety').value;
+  const on={};STEPS.forEach(s=>on[s.k]=it?!!(it.steps&&it.steps[s.k]&&it.steps[s.k].on):defOn(ty,s.k));
+  stepBoxes(on);$('edm').style.display='flex';
 }
 $('badd').onclick=()=>openEd(null);
-$('epj').onchange=()=>{$('epn').style.display=$('epj').value==='__new'?'':'none';$('epuw').style.display=$('epj').value?'':'none'};
-$('ety').onchange=()=>{$('ecw').style.display=$('ety').value==='ext'?'':'none';if(!editing){const on={};STEPS.forEach(s=>on[s.k]=defOn($('ety').value,s.k));stepBoxes(on)}};
+$('epj').onchange=()=>{$('epn').style.display=$('epj').value==='__new'?'':'none';syncQ();
+  if(!editing){const pj=projs.find(p=>p.id===$('epj').value),ty=pj?pj.type||'own':$('ety').value,on={};STEPS.forEach(s=>on[s.k]=defOn(ty,s.k));stepBoxes(on)}};
+$('ety').onchange=()=>{$('ecw').style.display=$('ety').value==='ext'?'':'none';if(!editing&&!$('epj').value){const on={};STEPS.forEach(s=>on[s.k]=defOn($('ety').value,s.k));stepBoxes(on)}};
 $('ecn').onclick=()=>{$('edm').style.display='none'};
 $('esv').onclick=async()=>{
-  const title=$('et').value.trim(),qty=parseInt($('eq').value,10)||0,pj1=projs.find(p=>p.id===$('epj').value),draft=!!$('epj').value&&($('epj').value==='__new'||!!(pj1&&!pj1.launched));
-  if(!title||(!draft&&qty<1)){if(!title)flash($('et'));if(!draft&&qty<1)flash($('eq'));return}
+  const title=$('et').value.trim(),qty=parseInt($('eq').value,10)||0,pv=$('epj').value,pj1=projs.find(p=>p.id===pv);
+  const needQ=!pv||!!(pj1&&pj1.launched),draft=!!pv&&(pv==='__new'||!!(pj1&&!pj1.launched));
+  if(!title||(needQ&&qty<1)){if(!title)flash($('et'));if(needQ&&qty<1)flash($('eq'));return}
   $('esv').disabled=true;$('ems').textContent='Сохраняю…';
   try{
-    const id=editing?editing.id:uid();let proj=$('epj').value;
+    const id=editing?editing.id:uid();let proj=pv;
     if(proj==='__new'){const nm=$('epn').value.trim();if(!nm){flash($('epn'));throw new Error('Введите название проекта')}proj=uid()+'p';await col('projects').doc(proj).set({name:nm,type:'own',cr:Date.now(),upd:Date.now(),img:'',files:[],launched:false,arch:false})}
-    const old=editing&&editing.steps||{},steps={};
-    STEPS.forEach(s=>{const on=$('es_'+s.k).checked,o=old[s.k]||{};steps[s.k]={on,done:on&&!!o.done,t:o.t||0,by:o.by||''}});
-    const d={title,art:$('ea').value.trim(),type:$('ety').value,client:$('ec').value.trim(),qty,material:$('em').value.trim(),urg:$('eu').value,due:$('ed').value,notes:$('en').value.trim(),proj:proj||'',perUnit:parseInt($('epu').value,10)||1,coatType:$('ect').value,steps,upd:Date.now()};
-    const f=$('ef').files[0];if(f)d.img=shrink(await fileToCanvas(f));
+    const pj=projs.find(p=>p.id===proj),old=editing&&editing.steps||{},legacy=editing&&!editing.ed2;
+    const extra=$('eex').value.trim(),ct=$('ect').value==='__m'?$('ect2').value.trim():$('ect').value;
+    const steps={};
+    STEPS.forEach(s=>{const o=old[s.k]||{};let on;
+      if(s.k==='fit')on=!!extra||!!(legacy&&o.on);else if(s.k==='coat')on=!!ct||!!(legacy&&o.on);else on=$('es_'+s.k).checked;
+      steps[s.k]={on,done:on&&!!o.done,t:o.t||0,by:o.by||''}});
+    const bk=$('ebk').value===MAN?($('ebk2').value.trim()||MAN):$('ebk').value;
+    const d={title,art:$('ea').value.trim(),type:pj?pj.type||'own':$('ety').value,client:pj?pj.client||'':$('ec').value.trim(),
+      qty:needQ?qty:(editing?editing.qty||0:0),perUnit:parseInt($('epu').value,10)||1,material:$('em').value.trim(),bk,bd:bdCollect(),
+      extra,coatType:ct,notes:$('en').value.trim(),proj:proj||'',steps,ed2:true,upd:Date.now()};
+    if(edImg)d.img=edImg;
     if(editing)await col('plan').doc(id).update(d);
     else{d.cr=Date.now();d.launched=!draft;d.reports=[];d.setups={};d.files=[];d.img=d.img||'';await col('plan').doc(id).set(d)}
-    const pf=[...$('efp').files],vf=[...$('efv').files],tot=pf.length+vf.length,pm=[],vm=[];let k=0;
-    for(const x of pf){$('ems').textContent='Загружаю файл '+(++k)+' из '+tot+'…';pm.push(await uploadFile(x,id,'public'))}
-    for(const x of vf){$('ems').textContent='Загружаю файл '+(++k)+' из '+tot+'…';vm.push(await uploadFile(x,id,'admin'))}
+    const pf=[...$('efp').files],pm=[];let k=0;
+    for(const x of pf){$('ems').textContent='Загружаю файл '+(++k)+' из '+pf.length+'…';pm.push(await uploadFile(x,id,'public'))}
     if(pm.length)await col('plan').doc(id).update({files:FV().arrayUnion(...pm)});
-    const pv={info:$('einf').value.trim()};if(vm.length)pv.docs=FV().arrayUnion(...vm);
-    await col('plan_private').doc(id).set(pv,{merge:true});
     $('edm').style.display='none';
   }catch(err){$('ems').textContent='Ошибка: '+(err.message||err.code)}
   finally{$('esv').disabled=false}
@@ -564,7 +634,7 @@ $('tadd').onclick=async()=>{
 $('bcopy').onclick=()=>{
   const v=items.filter(i=>cur(i)&&!i.arch&&live(i));
   let t='План производства на '+dd(today())+'\n';
-  URG.forEach(([k,n])=>{const g=v.filter(i=>(i.urg||'normal')===k).sort(by);if(!g.length)return;t+='\n'+n+':\n'+g.map(i=>'• '+i.title+(i.art?' ('+i.art+')':'')+' — '+prog(i)+'/'+i.qty+' шт'+(i.due?', до '+dd(i.due):'')+', '+cur(i).n+(i.type==='ext'?' (сторонний)':'')).join('\n')+'\n'});
+  t+='\n'+v.sort((a,b)=>(b.cr||0)-(a.cr||0)).map(i=>'• '+i.title+(i.art?' ('+i.art+')':'')+' — '+prog(i)+'/'+i.qty+' шт, '+cur(i).n+(i.type==='ext'?' (сторонний)':'')).join('\n')+'\n';
   (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{$('cnt').textContent='Сводка скопирована, вставьте в Telegram'}).catch(()=>prompt('Скопируйте текст:',t));
 };
 (function(){
