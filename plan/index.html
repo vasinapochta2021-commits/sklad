@@ -43,6 +43,8 @@ button.g{background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
 .st input{width:22px;height:22px;flex:none}
 .rp{padding:6px 0;border-top:1px solid var(--bd);font-size:13px}
 .su{border:1px solid var(--bd);border-radius:10px;padding:8px;margin:8px 0}
+.gd{margin-top:10px;border:1px solid var(--bd);border-radius:10px;padding:2px 10px 8px}
+.gd>summary{cursor:pointer;font-weight:700;padding:8px 0;color:var(--ac)}
 .priv{border:1px dashed var(--rd);border-radius:10px;padding:8px;margin-top:10px}
 a.f{color:var(--ac);cursor:pointer;text-decoration:underline}
 .ov{position:fixed;inset:0;background:#000b;display:none;align-items:flex-start;justify-content:center;z-index:10;padding:12px;overflow-y:auto}
@@ -97,6 +99,7 @@ a.f{color:var(--ac);cursor:pointer;text-decoration:underline}
   <div class="priv"><b style="color:var(--rd)">🔒 Только для администратора</b>
     <label class="l">Анкетные данные заказчика, заметки</label><textarea id="einf"></textarea>
     <label class="l">Счета, договоры, документы (до 8 МБ каждый)</label><input id="efv" type="file" multiple></div>
+  <label class="l">Вид покрытия (если нужно)</label><select id="ect"><option value="">—</option><option>Покраска</option><option>Анодирование (у партнёров)</option><option>Оксидирование</option></select>
   <label class="l">Этапы, нужные для этой позиции</label><div id="est"></div>
   <div class="row" style="margin-top:12px"><button id="esv">Сохранить</button><button id="ecn" class="g">Отмена</button><span id="ems" class="mu"></span></div>
 </div></div>
@@ -111,6 +114,15 @@ a.f{color:var(--ac);cursor:pointer;text-decoration:underline}
   <label class="l">Роль</label><select id="tr"><option value="operator">Оператор станка</option><option value="fitter">Слесарь</option><option value="admin">Администратор</option></select>
   <div class="row" style="margin-top:12px"><button id="tadd">Добавить</button><button id="tcl" class="g">Закрыть</button></div>
   <div id="tms" class="mu" style="margin-top:8px"></div>
+</div></div>
+
+<div id="sm" class="ov"><div class="box">
+  <b id="smt" style="font-size:18px">Сетап</b>
+  <label class="l">Станок</label><select id="smm"></select>
+  <label class="l">Тайминг (например, 12 мин/шт)</label><input id="smtm">
+  <div id="smqw"><label class="l">Сделано всего, шт (можно исправить)</label><input id="smq" type="number" min="0" inputmode="numeric"></div>
+  <div class="row" style="margin-top:12px"><button id="sms">Сохранить</button><button id="smc" class="g">Отмена</button><button id="smd" class="g" style="color:var(--rd);margin-left:auto">Удалить</button></div>
+  <div id="smx" class="mu" style="margin-top:8px;color:var(--rd)"></div>
 </div></div>
 
 <div id="zm" class="ov" style="align-items:center"><div class="box" style="background:none;padding:0"><button id="zx" style="position:fixed;top:12px;right:12px;width:44px;height:44px;border-radius:50%;padding:0">✕</button><img alt=""></div></div>
@@ -159,8 +171,8 @@ const ROLES={admin:'Администратор',operator:'Оператор ст�
 const STN=['ЧПУ токарный','ЧПУ фрезерный','Токарный универсал','Фрезерный универсал'];
 const SHORT={'ЧПУ токарный':'ЧПУ-ток','ЧПУ фрезерный':'ЧПУ-фрез','Токарный универсал':'Ток-ун','Фрезерный универсал':'Фрез-ун'};
 const URG=[['urgent','🔥 Срочно'],['normal','Обычные'],['low','Не срочно']];
-const defOn=(ty,k)=>!(k==='fit'||k==='coat'||(ty==='own'&&(k==='inv'||k==='pay')));
-let me=null,items=[],projs=[],team=[],privs={},started=false,editing=null,dirty=false;const open=new Set(),openP=new Set();
+const defOn=(ty,k)=>!(ty==='own'&&(k==='inv'||k==='pay'));
+let me=null,items=[],projs=[],team=[],privs={},started=false,editing=null,dirty=false;const open=new Set(),openP=new Set(),openG=new Set();let smI=null,smS=null;
 const cur=it=>STEPS.find(s=>it.steps&&it.steps[s.k]&&it.steps[s.k].on&&!it.steps[s.k].done);
 const sset=it=>Object.entries(it.setups||{}).map(([id,s])=>({id,...s})).sort((a,b)=>(a.n||0)-(b.n||0));
 const smade=s=>(s.reports||[]).reduce((n,r)=>n+(+r.q||0),0);
@@ -201,6 +213,7 @@ function start(){
   $('badd').style.display=adm?'':'none';$('bteam').style.display=adm?'':'none';
   $('fmw').style.display=adm?'none':'block';$('fm').checked=!adm;
   if(started)return;started=true;
+  $('smm').innerHTML=STN.map(x=>`<option>${x}</option>`).join('');
   $('fg').innerHTML='<option value="">Все этапы</option>'+[1,2,3].map(g=>`<optgroup label="${GT[g]}">`+STEPS.filter(s=>s.g===g).map(s=>`<option value="${s.k}">${s.n}</option>`).join('')+'</optgroup>').join('');
   col('plan').onSnapshot(sn=>{items=sn.docs.map(d=>({id:d.id,...d.data()}));soft()},e=>{$('cnt').textContent='Ошибка плана: '+(e.message||e.code)});
   col('projects').onSnapshot(sn=>{projs=sn.docs.map(d=>({id:d.id,...d.data()}));soft()});
@@ -225,6 +238,32 @@ function visible(){
     return q.every(w=>t.includes(w));
   });
 }
+function machAuto(it,sid,dq){const sim=sset(it).map(s=>s.id===sid?smade(s)+dq:smade(s));
+  return (sim.length&&Math.min(...sim)>=it.qty&&it.steps&&it.steps.mach&&it.steps.mach.on&&!it.steps.mach.done)?{'steps.mach.done':true,'steps.mach.t':Date.now(),'steps.mach.by':me.name}:{}}
+function openSm(it,s){
+  smI=it.id;smS=s?s.id:null;$('smt').textContent=s?'Изменить сетап №'+s.n:'Добавить сетап';
+  $('smm').value=s?s.m:STN[0];$('smtm').value=s?s.tm||'':'';$('smqw').style.display=s?'':'none';$('smq').value=s?smade(s):'';$('smd').style.display=s?'':'none';
+  $('smx').textContent='';$('sm').style.display='flex'}
+$('smc').onclick=()=>{$('sm').style.display='none'};
+$('sms').onclick=async()=>{
+  const it=items.find(i=>i.id===smI);if(!it)return;const m=$('smm').value,tm=$('smtm').value.trim();
+  $('sms').disabled=true;
+  try{
+    if(!smS)await col('plan').doc(it.id).update({['setups.s'+uid()]:{n:Math.max(0,...sset(it).map(s=>s.n||0))+1,m,tm,by:me.name,cr:Date.now(),reports:[]},upd:Date.now()});
+    else{
+      const s=sset(it).find(x=>x.id===smS),u={['setups.'+smS+'.m']:m,['setups.'+smS+'.tm']:tm,upd:Date.now()},nq=parseInt($('smq').value,10);
+      if(s&&!isNaN(nq)&&nq>=0&&nq!==smade(s)){const dq=nq-smade(s);u['setups.'+smS+'.reports']=FV().arrayUnion({t:Date.now(),by:me.name,q:dq,b:0,n:'Правка количества'});Object.assign(u,machAuto(it,smS,dq))}
+      await col('plan').doc(it.id).update(u);
+    }
+    $('sm').style.display='none';
+  }catch(err){$('smx').textContent='Ошибка: '+(err.message||err.code)}
+  finally{$('sms').disabled=false}
+};
+$('smd').onclick=async()=>{
+  if(!smS||!confirm('Удалить этот сетап вместе с его отчётами?'))return;
+  try{await col('plan').doc(smI).update({['setups.'+smS]:FV().delete(),upd:Date.now()});$('sm').style.display='none'}catch(err){$('smx').textContent='Ошибка: '+(err.message||err.code)}
+};
+$('list').addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.g;if(k)e.target.open?openG.add(k):openG.delete(k)},true);
 function fileRow(m,kind,adm){return `<div class="rp"><a class="f" data-a="dl" data-k="${kind}" data-fid="${m.fid}">📎 ${esc(m.name)}</a> <span class="mu">${kb(m.size)}</span>${adm?` <a class="f" data-a="fdel" data-k="${kind}" data-fid="${m.fid}" style="color:var(--rd)">удалить</a>`:''}</div>`}
 function card(it,inP){
   const c=cur(it),dn=!c,x=open.has(it.id),adm=me.role==='admin',op=me.role==='operator'||adm,ft=me.role==='fitter'||adm;
@@ -245,25 +284,34 @@ function card(it,inP){
     if(it.notes)h+=`<div style="margin-top:10px;white-space:pre-wrap"><span class="mu">ТЗ:</span> ${esc(it.notes)}</div>`;
     if((it.files||[]).length)h+='<div style="margin-top:10px"><b>Файлы</b>'+it.files.map(m=>fileRow(m,'pub',adm)).join('')+'</div>';
     if(adm){const pv=privs[it.id]||{};h+=`<div class="priv"><b style="color:var(--rd)">🔒 Только администратор</b>${pv.info?`<div style="white-space:pre-wrap;margin-top:6px">${esc(pv.info)}</div>`:''}${(pv.docs||[]).map(m=>fileRow(m,'priv',true)).join('')||'<div class="mu">Документов нет</div>'}</div>`}
-    [1,2,3].forEach(g=>{const l=STEPS.filter(s=>s.g===g&&it.steps&&it.steps[s.k]&&it.steps[s.k].on);if(!l.length)return;
-      h+=`<div class="gt">${GT[g]}</div>`+l.map(s=>{const v=it.steps[s.k],can=s.who.includes(me.role);
-        return `<label class="st"><input type="checkbox" data-st="${s.k}" ${v.done?'checked':''} ${can?'':'disabled'}><span style="flex:1">${s.n}</span><span class="mu">${v.done&&v.by?esc(v.by)+' '+when(v.t):''}</span></label>`}).join('')});
-    if(it.steps&&it.steps.mach&&it.steps.mach.on){
-      h+='<div class="gt">Сетапы</div>';
-      if(!ss.length)h+='<div class="mu">Сетапов пока нет</div>';
-      h+=ss.map(s=>{const m=smade(s),rp=(s.reports||[]).slice().reverse().slice(0,6);
-        return `<div class="su" data-sid="${s.id}"><div class="row bt"><b>Сетап №${s.n} · ${esc(s.m)}</b><span class="mu">${m}/${it.qty}${sbrak(s)?' · брак '+sbrak(s):''}</span></div>
+    const stp=k=>it.steps&&it.steps[k]&&it.steps[k].on;
+    [1,2,3].forEach(g=>{
+      const l=STEPS.filter(s=>s.g===g&&stp(s.k)),hasS=g===2&&stp('mach');
+      if(!l.length&&!hasS)return;
+      const key=it.id+':'+g,n2=l.filter(s=>it.steps[s.k].done).length;
+      h+=`<details class="gd" data-g="${key}"${openG.has(key)?' open':''}><summary>${GT[g]} <span class="mu">· ${n2} из ${l.length}</span></summary>`+l.map(s=>{const v=it.steps[s.k],can=s.who.includes(me.role);
+        return `<label class="st"><input type="checkbox" data-st="${s.k}" ${v.done?'checked':''} ${can?'':'disabled'}><span style="flex:1">${s.n}</span><span class="mu">${v.done&&v.by?esc(v.by)+' '+when(v.t):''}</span></label>`}).join('');
+      if(hasS){
+        h+='<div class="gt">Сетапы</div>';
+        if(!ss.length)h+='<div class="mu">Сетапов пока нет</div>';
+        h+=ss.map(s=>{const m=smade(s),rp=(s.reports||[]).slice().reverse().slice(0,6);
+          return `<div class="su" data-sid="${s.id}"><div class="row bt"><b>Сетап №${s.n} · ${esc(s.m)}</b>${op?'<button class="g" data-a="sedit" style="padding:3px 10px">✏️</button>':''}</div>
+          <div class="row mu bt"><span>${s.tm?'Тайминг: '+esc(s.tm):'Тайминг не указан'}</span><span>${m}/${it.qty}${sbrak(s)?' · брак '+sbrak(s):''}</span></div>
           <div class="bar"><i style="width:${pc(m)}%"></i></div>
-          <input class="stm" placeholder="Тайминг (например, 12 мин/шт)" value="${esc(s.tm||'')}" ${op?'':'disabled'}>
           ${op?`<div class="row" style="margin-top:6px"><input class="sq" type="number" min="0" inputmode="numeric" placeholder="Сделано за день, шт"><input class="sb2" type="number" min="0" inputmode="numeric" placeholder="Брак"></div><input class="sn" placeholder="Комментарий" style="margin-top:6px"><button data-a="srep" style="margin-top:6px">Отчёт по сетапу</button>`:''}
           ${rp.map(r=>`<div class="rp"><span class="mu">${when(r.t)} · ${esc(r.by)}</span><br>Сделано: <b>${r.q||0}</b>${r.b?', брак: <b>'+r.b+'</b>':''}${r.n?' · '+esc(r.n):''}</div>`).join('')}</div>`}).join('');
-      if(op)h+=`<div class="row"><select class="nm">${STN.map(s=>`<option>${s}</option>`).join('')}</select><button class="g" data-a="sadd">＋ Добавить сетап</button></div>`;
-    }
-    if(it.steps&&it.steps.fit&&it.steps.fit.on){
-      h+=`<div class="gt">Слесарка: готово ${fin} из ${it.qty} шт</div>`;
-      if(ft)h+='<div class="row"><input class="rq" type="number" min="0" inputmode="numeric" placeholder="Готово, шт"><input class="rb" type="number" min="0" inputmode="numeric" placeholder="Брак"></div><input class="rn" placeholder="Комментарий" style="margin-top:6px"><button data-a="rep" style="margin-top:6px">Отправить отчёт</button>';
-      h+=(it.reports||[]).slice().reverse().slice(0,8).map(r=>`<div class="rp"><span class="mu">${when(r.t)} · ${esc(r.by)}</span><br>Готово: <b>${r.q||0}</b>${r.b?', брак: <b>'+r.b+'</b>':''}${r.n?' · '+esc(r.n):''}</div>`).join('');
-    }
+        if(op)h+='<button class="g" data-a="sadd" style="margin-top:4px">＋ Добавить сетап</button>';
+      }
+      if(g===3){
+        if(stp('coat')&&it.coatType)h+=`<div class="mu" style="margin-top:6px">Вид покрытия: ${esc(it.coatType)}</div>`;
+        if(stp('fit')){
+          h+=`<div class="gt">Слесарка: готово ${fin} из ${it.qty} шт</div>`;
+          if(ft)h+='<div class="row"><input class="rq" type="number" min="0" inputmode="numeric" placeholder="Готово, шт"><input class="rb" type="number" min="0" inputmode="numeric" placeholder="Брак"></div><input class="rn" placeholder="Комментарий" style="margin-top:6px"><button data-a="rep" style="margin-top:6px">Отправить отчёт</button>';
+          h+=(it.reports||[]).slice().reverse().slice(0,8).map(r=>`<div class="rp"><span class="mu">${when(r.t)} · ${esc(r.by)}</span><br>Готово: <b>${r.q||0}</b>${r.b?', брак: <b>'+r.b+'</b>':''}${r.n?' · '+esc(r.n):''}</div>`).join('');
+        }
+      }
+      h+='</details>';
+    });
     if(adm)h+='<div class="row" style="margin-top:12px"><button class="g" data-a="edit">✏️ Изменить</button><button class="g" data-a="del" style="color:var(--rd)">🗑 Удалить</button></div>';
   }
   return h+'</div>';
@@ -324,15 +372,13 @@ $('list').addEventListener('click',async e=>{
       if(confirm('Удалить файл «'+m.name+'»?')){await delChunks(m);
         if(priv)await col('plan_private').doc(id).update({docs:FV().arrayRemove(m)});else await col('plan').doc(id).update({files:FV().arrayRemove(m)})}
       return}
-    if(a==='sadd'){
-      const n=Math.max(0,...sset(it).map(s=>s.n||0))+1;
-      await col('plan').doc(id).update({['setups.s'+uid()]:{n,m:c.querySelector('.nm').value,tm:'',by:me.name,cr:Date.now(),reports:[]},upd:Date.now()});return}
+    if(a==='sadd'){openSm(it,null);return}
+    if(a==='sedit'){openSm(it,sset(it).find(x=>x.id===t.closest('.su').dataset.sid));return}
     if(a==='srep'){
       const su=t.closest('.su'),sid=su.dataset.sid,q=parseInt(su.querySelector('.sq').value,10)||0,b=parseInt(su.querySelector('.sb2').value,10)||0;
       if(!q&&!b){flash(su.querySelector('.sq'));return}
       const r={t:Date.now(),by:me.name,q,b,n:su.querySelector('.sn').value.trim()};
-      const sim=sset(it).map(s=>s.id===sid?smade(s)+q:smade(s)),upd={['setups.'+sid+'.reports']:FV().arrayUnion(r),upd:Date.now()};
-      if(Math.min(...sim)>=it.qty&&it.steps&&it.steps.mach&&it.steps.mach.on&&!it.steps.mach.done){upd['steps.mach.done']=true;upd['steps.mach.t']=Date.now();upd['steps.mach.by']=me.name}
+      const upd=Object.assign({['setups.'+sid+'.reports']:FV().arrayUnion(r),upd:Date.now()},machAuto(it,sid,q));
       await col('plan').doc(id).update(upd);dirty=false;return}
     if(a==='rep'){
       const q=parseInt(c.querySelector('.rq').value,10)||0,b=parseInt(c.querySelector('.rb').value,10)||0;
@@ -357,7 +403,7 @@ function openEd(it){
   $('et').value=it?it.title:'';$('ea').value=it?it.art||'':'';$('ety').value=it?it.type:'own';$('eq').value=it?it.qty:'';$('ec').value=it?it.client||'':'';
   $('em').value=it?it.material||'':'';$('eu').value=it?it.urg||'normal':'normal';$('ed').value=it?it.due||'':'';$('en').value=it?it.notes||'':'';
   $('ef').value='';$('efp').value='';$('efv').value='';$('epn').value='';$('epn').style.display='none';
-  $('einf').value=it?(privs[it.id]||{}).info||'':'';
+  $('einf').value=it?(privs[it.id]||{}).info||'':'';$('ect').value=it?it.coatType||'':'';
   $('epj').innerHTML='<option value="">— без проекта —</option>'+projs.slice().sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')+'<option value="__new">＋ Новый проект…</option>';
   $('epj').value=it&&projs.some(p=>p.id===it.proj)?it.proj:'';
   const on={};STEPS.forEach(s=>on[s.k]=it?!!(it.steps&&it.steps[s.k]&&it.steps[s.k].on):defOn('own',s.k));
@@ -376,7 +422,7 @@ $('esv').onclick=async()=>{
     if(proj==='__new'){const nm=$('epn').value.trim();if(!nm){flash($('epn'));throw new Error('Введите название проекта')}proj=uid()+'p';await col('projects').doc(proj).set({name:nm,cr:Date.now()})}
     const old=editing&&editing.steps||{},steps={};
     STEPS.forEach(s=>{const on=$('es_'+s.k).checked,o=old[s.k]||{};steps[s.k]={on,done:on&&!!o.done,t:o.t||0,by:o.by||''}});
-    const d={title,art:$('ea').value.trim(),type:$('ety').value,client:$('ec').value.trim(),qty,material:$('em').value.trim(),urg:$('eu').value,due:$('ed').value,notes:$('en').value.trim(),proj:proj||'',steps,upd:Date.now()};
+    const d={title,art:$('ea').value.trim(),type:$('ety').value,client:$('ec').value.trim(),qty,material:$('em').value.trim(),urg:$('eu').value,due:$('ed').value,notes:$('en').value.trim(),proj:proj||'',coatType:$('ect').value,steps,upd:Date.now()};
     const f=$('ef').files[0];if(f)d.img=shrink(await fileToCanvas(f));
     if(editing)await col('plan').doc(id).update(d);
     else{d.cr=Date.now();d.reports=[];d.setups={};d.files=[];d.img=d.img||'';await col('plan').doc(id).set(d)}
