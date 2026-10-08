@@ -101,6 +101,7 @@ a.f{color:var(--ac);cursor:pointer;text-decoration:underline}
     <label class="l">6. Заготовка: вид</label><select id="ebk"></select><input id="ebk2" placeholder="Вид заготовки" style="display:none;margin-top:6px">
     <div id="ebd" style="margin-top:6px"></div><button id="ebda" class="g" type="button" style="margin-top:6px">＋ Добавить поле</button>
     <div id="epuw"><label class="l">7. Количество деталей на одно изделие</label><input id="epu" type="number" min="1" inputmode="numeric" value="1"></div>
+    <div id="erw"><label class="l">Запас на брак, шт (добавляется один раз на запуск)</label><input id="er" type="number" min="0" inputmode="numeric" value="0"></div>
     <div id="eqw"><label class="l" id="eql">7. Количество деталей, шт *</label><input id="eq" type="number" min="1" inputmode="numeric"></div>
   </div>
   <div class="sec">
@@ -351,7 +352,7 @@ function card(it,inP){
     if(it.notes)h+=`<div style="margin-top:10px;white-space:pre-wrap"><span class="mu">ТЗ:</span> ${esc(it.notes)}</div>`;
     if((it.files||[]).length)h+='<div style="margin-top:10px"><b>Файлы</b>'+it.files.map(m=>fileRow(m,'pub',adm)).join('')+'</div>';
     const bdt=(it.bd||[]).map(x=>esc(x.l.replace(/, (мм|кг)$/,''))+': '+esc(x.v)).join(' · ');
-    const info=[it.material?'Материал: '+esc(it.material):'',it.bk?'Заготовка: '+esc(it.bk)+(bdt?' · '+bdt:''):'',it.extra?'Доп. обработка: '+esc(it.extra):'',it.coatType?'Покрытие: '+esc(it.coatType):'',it.perUnit&&it.proj?'На 1 изделие: '+it.perUnit+' шт':''].filter(Boolean);
+    const info=[it.material?'Материал: '+esc(it.material):'',it.bk?'Заготовка: '+esc(it.bk)+(bdt?' · '+bdt:''):'',it.extra?'Доп. обработка: '+esc(it.extra):'',it.coatType?'Покрытие: '+esc(it.coatType):'',it.perUnit&&it.proj?'На 1 изделие: '+it.perUnit+' шт':'',it.reserve&&it.proj?'Запас на брак: '+it.reserve+' шт':''].filter(Boolean);
     if(info.length)h+='<div class="mu" style="margin-top:10px;line-height:1.6">'+info.join('<br>')+'</div>';
     const stp=k=>it.steps&&it.steps[k]&&it.steps[k].on;
     if(!dr&&!it.skip)[1,2,3].forEach(g=>{
@@ -548,7 +549,7 @@ $('ebk').onchange=()=>{$('ebk2').style.display=$('ebk').value===MAN?'':'none';bd
 $('ebda').onclick=()=>bdRow('','',true);
 $('ect').onchange=()=>{$('ect2').style.display=$('ect').value==='__m'?'':'none'};
 function syncQ(){const v=$('epj').value,pj=projs.find(p=>p.id===v),hp=!!v,lc=!!(pj&&pj.launched);
-  $('epuw').style.display=hp?'':'none';$('eqw').style.display=(!hp||lc)?'':'none';
+  $('epuw').style.display=hp?'':'none';$('erw').style.display=hp?'':'none';$('eqw').style.display=(!hp||lc)?'':'none';
   $('eql').textContent=hp?'Сколько изготовить, шт *':'7. Количество деталей, шт *'}
 function filesInfo(){const ex=editing&&editing.files||[],nw=[...$('efp').files];
   $('efpl').innerHTML=(ex.length?'Уже прикреплено:<br>'+ex.map(m=>'📎 '+esc(m.name)).join('<br>')+(nw.length?'<br>':''):'')+(nw.length?'Будет добавлено:<br>'+nw.map(f=>'📎 '+esc(f.name)).join('<br>'):'')}
@@ -571,7 +572,7 @@ function openEd(it,pj0){
   bdBuild($('ebk').value,it?it.bd:[]);
   $('epj').innerHTML='<option value="">— без проекта —</option>'+projs.filter(p=>!p.arch).sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')+'<option value="__new">＋ Новый проект…</option>';
   $('epj').value=it&&projs.some(p=>p.id===it.proj)?it.proj:'';if(!it&&pj0)$('epj').value=pj0;
-  $('epu').value=it?it.perUnit||1:1;syncQ();filesInfo();
+  $('epu').value=it?it.perUnit||1:1;$('er').value=it?it.reserve||0:0;syncQ();filesInfo();
   const pj=projs.find(p=>p.id===$('epj').value),ty=pj?pj.type||'own':$('ety').value;
   const on={};STEPS.forEach(s=>on[s.k]=it?!!(it.steps&&it.steps[s.k]&&it.steps[s.k].on):defOn(ty,s.k));
   stepBoxes(on);$('edm').style.display='flex';
@@ -597,7 +598,7 @@ $('esv').onclick=async()=>{
       steps[s.k]={on,done:on&&!!o.done,t:o.t||0,by:o.by||''}});
     const bk=$('ebk').value===MAN?($('ebk2').value.trim()||MAN):$('ebk').value;
     const d={title,art:$('ea').value.trim(),type:pj?pj.type||'own':$('ety').value,client:pj?pj.client||'':$('ec').value.trim(),
-      qty:needQ?qty:(editing?editing.qty||0:0),perUnit:parseInt($('epu').value,10)||1,material:$('em').value.trim(),bk,bd:bdCollect(),
+      qty:needQ?qty:(editing?editing.qty||0:0),perUnit:parseInt($('epu').value,10)||1,reserve:Math.max(0,parseInt($('er').value,10)||0),material:$('em').value.trim(),bk,bd:bdCollect(),
       extra,coatType:ct,notes:$('en').value.trim(),proj:proj||'',steps,ed2:true,upd:Date.now()};
     if(edImg)d.img=edImg;
     if(editing)await col('plan').doc(id).update(d);
@@ -701,7 +702,7 @@ const stockOf=it=>{const a=(it.art||'').trim().toLowerCase(),n=(it.title||'').tr
 const lmParts=()=>items.filter(i=>i.proj===lP).sort((a,b)=>(a.cr||0)-(b.cr||0));
 function openLaunch(p){
   lP=p.id;
-  $('lm1t').innerHTML=`Вы действительно хотите запустить проект <b>«${esc(p.name)}»</b>${p.art?', артикул <b>'+esc(p.art)+'</b>':''}, состоящий из деталей:<br>`+lmParts().map((i,k)=>`${k+1}. ${esc(i.title)}${i.art?' ('+esc(i.art)+')':''} — ${i.perUnit||1} шт на изделие`).join('<br>')+'?';
+  $('lm1t').innerHTML=`Вы действительно хотите запустить проект <b>«${esc(p.name)}»</b>${p.art?', артикул <b>'+esc(p.art)+'</b>':''}, состоящий из деталей:<br>`+lmParts().map((i,k)=>`${k+1}. ${esc(i.title)}${i.art?' ('+esc(i.art)+')':''} — ${i.perUnit||1} шт на изделие${i.reserve?', запас на брак '+i.reserve:''}`).join('<br>')+'?';
   $('lm1').style.display='flex'}
 $('lm1n').onclick=()=>{$('lm1').style.display='none'};
 $('lm1y').onclick=async()=>{
@@ -709,10 +710,10 @@ $('lm1y').onclick=async()=>{
   try{stk=(await col('parts').get()).docs.map(d=>({id:d.id,...d.data()}))}catch(e){stk=[];$('lmm').textContent='Остатки со склада не загрузились, считаем без них'}
   lmPrev()};
 function lmCalc(N){const rem={};
-  return lmParts().map(it=>{const need=(it.perUnit||1)*N,st=stockOf(it),have=st?(rem[st.id]!==undefined?rem[st.id]:(st.qty||0)):0,use=Math.min(have,need);if(st)rem[st.id]=have-use;return {it,need,st,have,use,make:need-use}})}
+  return lmParts().map(it=>{const need=(it.perUnit||1)*N,st=stockOf(it),have=st?(rem[st.id]!==undefined?rem[st.id]:(st.qty||0)):0,use=Math.min(have,need);if(st)rem[st.id]=have-use;const res=+it.reserve||0,rest=need-use;return {it,need,st,have,use,res,make:rest>0?rest+res:0}})}
 function lmPrev(){const N=parseInt($('lmn').value,10);
   if(!N||N<1){$('lmp').innerHTML='<div class="mu">Введите количество изделий</div>';return}
-  $('lmp').innerHTML=lmCalc(N).map(r=>`<div class="rp"><b>${esc(r.it.title)}</b>${r.it.art?' ('+esc(r.it.art)+')':''}<br>нужно ${r.need} · на складе остатков ${r.have} · <b>изготовить ${r.make}</b></div>`).join('')}
+  $('lmp').innerHTML=lmCalc(N).map(r=>`<div class="rp"><b>${esc(r.it.title)}</b>${r.it.art?' ('+esc(r.it.art)+')':''}<br>нужно ${r.need} · на складе остатков ${r.have}${r.res&&r.make?' · запас на брак +'+r.res:''} · <b>изготовить ${r.make}</b></div>`).join('')}
 $('lmn').addEventListener('input',lmPrev);
 $('lmx').onclick=()=>{$('lm2').style.display='none'};
 $('lmy').onclick=async()=>{
